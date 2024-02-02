@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 from bot.utils import csmoney_parser
 from bot.utils.loader import bot, dp, loop
 from bot.utils.csmoney_parser import parser
+from bot.utils.steam_price_checker import check_item_price
 
 from aiogram import executor, types
 import asyncio

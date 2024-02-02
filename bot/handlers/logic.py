@@ -8,12 +8,13 @@ from bot.utils.csmoney_parser import parser
 from bot.models import TelegramUser
 from asgiref.sync import sync_to_async
 
-stop_notifier = True
+stop_notifier = False
 
 
 async def notifier():
     while stop_notifier == False:
         await parser()
+        await asyncio.sleep(5)
 
 
 @dp.message_handler(commands=["start"])
