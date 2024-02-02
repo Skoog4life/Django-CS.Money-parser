@@ -1,0 +1,1 @@
+from bot.utils.loader import bot, dp, loop
