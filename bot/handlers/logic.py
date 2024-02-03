@@ -5,15 +5,28 @@ from aiogram import types
 from bot.utils.loader import bot, dp, loop
 from bot.utils.csmoney_parser import parser
 
-from bot.models import TelegramUser
+from bot.models import TelegramUser, FoundItem
 from asgiref.sync import sync_to_async
+import time
 
 stop_notifier = False
 
 
 async def notifier():
-    while stop_notifier == False:
+    while stop_notifier == False:    
+        start_time = time.time()    
         await parser()
+        foundItems = FoundItem.objects.filter(is_sent=False)
+        async for user in TelegramUser.objects.filter(notify=True):
+            async for item in foundItems:
+                if item.profit >= user.desired_profit:
+                    await bot.send_message(
+                        chat_id=user.chat_id,
+                        text=f"Name: {item.name}\nProfit: {item.profit}\nSteam Price: {item.steam_price}\nCSMoney Price: {item.csmoney_price}\nLink: {item.link}"
+                    )
+        await foundItems.aupdate(is_sent=True)
+        finish_time = time.time()-start_time
+        print(finish_time)
         await asyncio.sleep(5)
 
 

@@ -9,12 +9,19 @@ User = get_user_model()
 class TelegramUser(models.Model):
     chat_id = models.CharField(max_length=20, primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    desired_profit = models.FloatField(default=1.35)
     notify = models.BooleanField(default=True)
 
     def has_staff_status(self):
         if self.user:
             return self.user.is_staff
         return False
+    
+    def get_desired_profit(self):
+        return (self.desired_profit * 100) - 100
+    
+    def set_desired_profit(self, choosed_profit):
+        self.desired_profit = (choosed_profit + 100) / 100
 
     def __str__(self):
         return self.chat_id
@@ -44,4 +51,3 @@ class FoundItem(models.Model):
     steam_price = models.FloatField()
     profit = models.FloatField()
     is_sent = models.BooleanField(default=False)
-
