@@ -13,7 +13,7 @@ from bot.models import FoundItem
 async def parser():
     page_count = 180
     csmoney_allowed_discount = 0.25
-    steam_allowed_profit = 1.25
+    steam_allowed_profit = 1.3
     try:
         async with aiohttp.ClientSession() as session:
             for page in range(0, page_count, 60):
@@ -58,7 +58,7 @@ async def parser():
                             if steam_price == -1:
                                 continue
 
-                            profit = float(steam_price / csmoney_computed_price)
+                            profit = round(float(steam_price / csmoney_computed_price), 3)
 
                             if profit >= steam_allowed_profit:
                                 await FoundItem.objects.aget_or_create(

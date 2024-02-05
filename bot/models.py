@@ -22,6 +22,7 @@ class TelegramUser(models.Model):
     
     def set_desired_profit(self, choosed_profit):
         self.desired_profit = (choosed_profit + 100) / 100
+        self.save()
 
     def __str__(self):
         return self.chat_id
@@ -50,4 +51,5 @@ class FoundItem(models.Model):
     csmoney_price = models.FloatField()
     steam_price = models.FloatField()
     profit = models.FloatField()
+    found_date = models.DateTimeField(auto_now_add=True)
     is_sent = models.BooleanField(default=False)

@@ -9,7 +9,6 @@ import asyncio
 
 from bot.handlers import logic
 
-
 async def on_startup(_):
     print("Bot started")
     asyncio.create_task(logic.notifier())

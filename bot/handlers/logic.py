@@ -13,8 +13,7 @@ stop_notifier = False
 
 
 async def notifier():
-    while stop_notifier == False:    
-        start_time = time.time()    
+    while stop_notifier == False:     
         await parser()
         foundItems = FoundItem.objects.filter(is_sent=False)
         async for user in TelegramUser.objects.filter(notify=True):
@@ -25,8 +24,6 @@ async def notifier():
                         text=f"Name: {item.name}\nProfit: {item.profit}\nSteam Price: {item.steam_price}\nCSMoney Price: {item.csmoney_price}\nLink: {item.link}"
                     )
         await foundItems.aupdate(is_sent=True)
-        finish_time = time.time()-start_time
-        print(finish_time)
         await asyncio.sleep(5)
 
 

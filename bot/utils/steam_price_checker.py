@@ -40,7 +40,7 @@ async def steam_request(item_name):
 
 async def check_item_price(item_name):
     item = await ItemPrice.objects.filter(name=item_name).afirst() # Take the first item
-    if item and not await sync_to_async(item.need_to_update)(3): # 
+    if item and not await sync_to_async(item.need_to_update)(24): # 
         return item.price
     else:
         await asyncio.sleep(3)
