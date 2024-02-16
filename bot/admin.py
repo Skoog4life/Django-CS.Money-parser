@@ -8,6 +8,9 @@ class TelegramUserAdmin(admin.ModelAdmin):
 class FoundItemAdmin(admin.ModelAdmin):
     list_display = ['item_id', 'name', 'link', 'profit', 'is_sent']
 
+class ItemPriceAdmin(admin.ModelAdmin):
+    list_display = ['name', 'price', 'update_time']
+
 admin.site.register(TelegramUser, TelegramUserAdmin)
-admin.site.register(ItemPrice)
+admin.site.register(ItemPrice, ItemPriceAdmin)
 admin.site.register(FoundItem, FoundItemAdmin)

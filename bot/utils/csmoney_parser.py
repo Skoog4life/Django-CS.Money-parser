@@ -5,7 +5,7 @@ import time
 import asyncio
 import aiohttp
 import aiofiles
-from .steam_price_checker import check_item_price
+from .steam_price_checker import check_item_price, steam_hash_name
 
 from bot.models import FoundItem
 
@@ -39,7 +39,7 @@ async def parser():
                             item_id = item["id"]
                             full_name_of_item = item["asset"]["names"]["full"]
                             item_link = (
-                                f"https://steamcommunity.com/market/listings/730/{urllib.parse.quote(full_name_of_item)}"
+                                f"https://steamcommunity.com/market/listings/730/{await steam_hash_name(full_name_of_item)}"
                             )
                             csmoney_computed_price = item["pricing"]["computed"]
                             csmoney_discount = item["pricing"]["discount"]
