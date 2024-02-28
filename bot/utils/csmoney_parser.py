@@ -13,7 +13,7 @@ from bot.models import FoundItem
 async def parser():
     page_count = 180
     csmoney_allowed_discount = 0.25
-    steam_allowed_profit = 1.3
+    steam_allowed_profit = 1.35
     try:
         async with aiohttp.ClientSession() as session:
             for page in range(0, page_count, 60):
@@ -38,9 +38,7 @@ async def parser():
                         if item["pricing"]["discount"] >= csmoney_allowed_discount:
                             item_id = item["id"]
                             full_name_of_item = item["asset"]["names"]["full"]
-                            item_link = (
-                                f"https://steamcommunity.com/market/listings/730/{await steam_hash_name(full_name_of_item)}"
-                            )
+                            item_link = f"https://steamcommunity.com/market/listings/730/{await steam_hash_name(full_name_of_item)}"
                             csmoney_computed_price = item["pricing"]["computed"]
                             csmoney_discount = item["pricing"]["discount"]
 
@@ -60,16 +58,20 @@ async def parser():
 
                             profit = round(float(steam_price / csmoney_computed_price), 3)
 
-                            if profit >= steam_allowed_profit:
-                                await FoundItem.objects.aget_or_create(
-                                    item_id=item_id,
-                                    name=full_name_of_item,
-                                    link=item_link,
-                                    csmoney_price=csmoney_computed_price,
-                                    steam_price=steam_price,
-                                    profit=profit,
-                                )
-                                # print(f"PROFIT {full_name_of_item} {profit}")
+                            try:
+                                if profit >= steam_allowed_profit:
+                                    await FoundItem.objects.aget_or_create(
+                                        item_id=item_id,
+                                        name=full_name_of_item,
+                                        link=item_link,
+                                        csmoney_price=csmoney_computed_price,
+                                        steam_price=steam_price,
+                                        profit=profit,
+                                    )
+                                    # print(f"PROFIT {full_name_of_item} {profit}")
+                            except Exception as e:
+                                print(f"Error: {e}")
+                                print(f"Item: {full_name_of_item} item_id: {item_id}")
 
                         else:
                             stop_loop = True
@@ -82,6 +84,5 @@ async def parser():
                     break
         print("code")
     except TimeoutError:
-        print('Sleep (10)')
+        print("Sleep (10)")
         await asyncio.sleep(10)
-

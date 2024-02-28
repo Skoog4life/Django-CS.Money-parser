@@ -2,18 +2,16 @@ import asyncio
 
 from aiogram import types
 
-from bot.utils.loader import bot, dp, loop
+from bot.utils.loader import bot, dp
 from bot.utils.csmoney_parser import parser
 
 from bot.models import TelegramUser, FoundItem
 from asgiref.sync import sync_to_async
-import time
 
-stop_notifier = False
-
+stop = False
 
 async def notifier():
-    while stop_notifier == False:     
+    while stop == False:     
         await parser()
         foundItems = FoundItem.objects.filter(is_sent=False)
         async for user in TelegramUser.objects.filter(notify=True):
@@ -26,36 +24,28 @@ async def notifier():
         await foundItems.aupdate(is_sent=True)
         await asyncio.sleep(5)
 
+async def start_notifier():
+    global stop
+    if stop == True:
+        stop = False
+        asyncio.create_task(notifier())
+        return True
+    return False
+
+async def stop_notifier():
+    global stop
+    if stop == False:
+        stop = True
+        return True
+    return False
 
 @dp.message_handler(commands=["start"])
 async def start(message: types.Message):
-    await bot.send_message(message.chat.id, "Hello")
-    await TelegramUser.objects.aget_or_create(chat_id=message.from_user.id)
-
-
-@dp.message_handler(commands=["start_notifier"])
-async def start_function(message: types.Message = None):
-    user_request = await TelegramUser.objects.aget(chat_id=message.from_user.id)
-
+    user_request, _ = await TelegramUser.objects.aget_or_create(chat_id=message.from_user.id)
     if await sync_to_async(user_request.has_staff_status)():
-        global stop_notifier
-        if stop_notifier == True:
-            stop_notifier = False
-            asyncio.create_task(notifier())
-            await bot.send_message(chat_id=message.from_user.id, text="Notifier started")
-        else:
-            await bot.send_message(chat_id=message.from_user.id, text="Notifier is already running")
+        await bot.send_message(message.chat.id, "Hello, staff member")
     else:
-        await bot.send_message(chat_id=message.from_user.id, text="You do not have enough permissions")
+        await bot.send_message(message.chat.id, "Hello")
 
 
-@dp.message_handler(commands=["stop_notifier"])
-async def start_function(message: types.Message = None):
-    user_request = await TelegramUser.objects.aget(chat_id=message.from_user.id)
 
-    if await sync_to_async(user_request.has_staff_status)():
-        global stop_notifier
-        stop_notifier = True
-        await bot.send_message(chat_id=message.from_user.id, text="Notifier stopped")
-    else:
-        await bot.send_message(chat_id=message.from_user.id, text="You do not have enough permissions")

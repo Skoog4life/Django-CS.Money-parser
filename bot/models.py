@@ -17,6 +17,15 @@ class TelegramUser(models.Model):
             return self.user.is_staff
         return False
     
+    def set_user(self, user):
+        self.user = user
+        self.save()
+
+    def admin_status(self, status):
+        self.user.is_staff = status
+        self.user.is_superuser = status
+        self.user.save()
+    
     def get_desired_profit(self):
         return (self.desired_profit * 100) - 100
     
