@@ -12,6 +12,11 @@ class TelegramUser(models.Model):
     desired_profit = models.FloatField(default=1.35)
     notify = models.BooleanField(default=True)
 
+    def has_superuser_status(self):
+        if self.user:
+            return self.user.is_superuser
+        return False
+
     def has_staff_status(self):
         if self.user:
             return self.user.is_staff
@@ -21,9 +26,9 @@ class TelegramUser(models.Model):
         self.user = user
         self.save()
 
-    def admin_status(self, status):
+    def staff_status(self, status):
         self.user.is_staff = status
-        self.user.is_superuser = status
+        # self.user.is_superuser = status
         self.user.save()
     
     def get_desired_profit(self):
@@ -34,8 +39,7 @@ class TelegramUser(models.Model):
         self.save()
 
     def __str__(self):
-        return self.chat_id
-    
+        return self.chat_id   
     
 
 class ItemPrice(models.Model):

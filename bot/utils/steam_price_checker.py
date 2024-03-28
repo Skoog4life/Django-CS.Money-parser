@@ -49,6 +49,8 @@ async def check_item_price(item_name, update=False):
     else:
         await asyncio.sleep(3)
         item_price = await steam_request(item_name)
+        if item_price == -1:
+            return -1
         item, _ = await ItemPrice.objects.aupdate_or_create(name=item_name,defaults={'price':item_price})
         print(f'Updated item: {item_name}')
         return item.price
