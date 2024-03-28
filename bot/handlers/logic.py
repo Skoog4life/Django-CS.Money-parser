@@ -7,6 +7,7 @@ from bot.utils.csmoney_parser import parser
 
 from bot.models import TelegramUser, FoundItem
 from asgiref.sync import sync_to_async
+from bot.keyboards import user_keyboard
 
 stop = False
 
@@ -43,9 +44,7 @@ async def stop_notifier():
 async def start(message: types.Message):
     user_request, _ = await TelegramUser.objects.aget_or_create(chat_id=message.from_user.id)
     if await sync_to_async(user_request.has_staff_status)():
-        await bot.send_message(message.chat.id, "Hello, staff member")
+        await bot.send_message(message.chat.id, "Hello, staff member", reply_markup=user_keyboard.admin_keyboard)
     else:
-        await bot.send_message(message.chat.id, "Hello")
-
-
+        await bot.send_message(message.chat.id, "Hello", reply_markup=user_keyboard.user_keyboard)
 

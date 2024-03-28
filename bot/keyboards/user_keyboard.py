@@ -1,17 +1,17 @@
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 
 # Define the user buttons
-notify_on_button = InlineKeyboardButton('Enable notifications 🔔', callback_data='/notify_on')
-notify_off_button = InlineKeyboardButton('Disable notifications 🔕', callback_data='/notify_off')
-check_button = InlineKeyboardButton('Check price ✅', callback_data='/check')
-profit_button = InlineKeyboardButton('Change profit 💰', callback_data='/profit')
-create_user_button = InlineKeyboardButton('Create user👤🔑', callback_data='/create_user')
+notify_on_button = InlineKeyboardButton('Enable notifications 🔔', callback_data='u/notify_on')
+notify_off_button = InlineKeyboardButton('Disable notifications 🔕', callback_data='u/notify_off')
+check_button = InlineKeyboardButton('Check price ✅', callback_data='u/check')
+profit_button = InlineKeyboardButton('Change profit 💰', callback_data='u/profit')
+create_user_button = InlineKeyboardButton('Create user👤🔑', callback_data='u/create_user')
 
 # Define the admin buttons
-update_button = InlineKeyboardButton('Update price 🔄', callback_data='/update')
-start_notifier_button = InlineKeyboardButton('Start notifier 🚀', callback_data='/start_notifier')
-stop_notifier_button = InlineKeyboardButton('Stop notifier 🛑', callback_data='/stop_notifier')
-admin_button = InlineKeyboardButton('Add admin 👤➕', callback_data='/admin')
+update_button = InlineKeyboardButton('Update price 🔄', callback_data='a/update')
+start_notifier_button = InlineKeyboardButton('Start notifier 🚀', callback_data='a/start_notifier')
+stop_notifier_button = InlineKeyboardButton('Stop notifier 🛑', callback_data='a/stop_notifier')
+admin_button = InlineKeyboardButton('Add admin 👤➕', callback_data='a/admin')
 
 separator_button = InlineKeyboardButton('✨ Admin commands ✨', callback_data='separator')
 
