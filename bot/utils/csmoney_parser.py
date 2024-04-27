@@ -6,14 +6,13 @@ import asyncio
 import aiohttp
 import aiofiles
 from .steam_price_checker import check_item_price, steam_hash_name
-
-from bot.models import FoundItem
-
+from bot.models import FoundItem, Config
 
 async def parser():
-    page_count = 180
-    csmoney_allowed_discount = 0.25
-    steam_allowed_profit = 1.35
+    config = await Config.objects.afirst()
+    page_count = int(config.page_count)
+    csmoney_allowed_discount = config.csmoney_allowed_discount
+    steam_allowed_profit = config.steam_allowed_profit
     try:
         async with aiohttp.ClientSession() as session:
             for page in range(0, page_count, 60):
@@ -21,6 +20,7 @@ async def parser():
                 async with session.get(
                     f"https://cs.money/1.0/market/sell-orders?limit=60&minPrice=0.25&offset={page}&order=desc&sort=discount&type=12",
                     timeout=10,
+                    #proxy="http://35.185.196.38:3128",
                 ) as response:
                     src = await response.text()
                     try:
@@ -28,14 +28,14 @@ async def parser():
                     except json.JSONDecodeError as e:
                         data = {"items": []}
                         stop_loop = True
-                        print("CSMONEY ERROR")
+                        print(f"CSMONEY ERROR: {e}")
 
                     async with aiofiles.open(f"items{page}.json", "w", encoding="utf-8") as file:
                         await file.write(json.dumps(data, indent=4, ensure_ascii=False))
 
                     item_list = []
                     for item in data["items"]:
-                        if item["pricing"]["discount"] >= csmoney_allowed_discount:
+                        if item["pricing"]["discount"] >= csmoney_allowed_discount and item["pricing"]["discount"] <= 0.385:
                             item_id = item["id"]
                             full_name_of_item = item["asset"]["names"]["full"]
                             item_link = f"https://steamcommunity.com/market/listings/730/{await steam_hash_name(full_name_of_item)}"
@@ -52,7 +52,7 @@ async def parser():
                                 }
                             )
 
-                            steam_price = await check_item_price(item_name=full_name_of_item)
+                            steam_price = await check_item_price(item_name=full_name_of_item, config=config)
                             if steam_price == -1:
                                 continue
 
@@ -73,16 +73,16 @@ async def parser():
                                 print(f"Error: {e}")
                                 print(f"Item: {full_name_of_item} item_id: {item_id}")
 
-                        else:
-                            stop_loop = True
-                            break
+                        # else:
+                        #     stop_loop = True
+                        #     break
 
                     async with aiofiles.open(f"items_discount{page}.json", "w", encoding="utf-8") as file:
                         await file.write(json.dumps(item_list, indent=4, ensure_ascii=False))
 
                 if stop_loop:
                     break
-        print("code")
+        print("Parsing...")
     except TimeoutError:
         print("Sleep (10)")
         await asyncio.sleep(10)
