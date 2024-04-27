@@ -70,19 +70,52 @@ async def stop_notifier():
 
 @dp.message_handler(commands=["start"])
 async def start(message: types.Message):
-    user_request, _ = await TelegramUser.objects.aget_or_create(chat_id=message.from_user.id)
-    if await sync_to_async(user_request.has_superuser_status)():
-        await bot.send_message(message.chat.id, "Hello, superuser", reply_markup=keyboard.admin_keyboard)
-    elif await sync_to_async(user_request.has_staff_status)():
-        await bot.send_message(message.chat.id, "Hello, staff member", reply_markup=keyboard.staff_keyboard)
+    user_request, new = await TelegramUser.objects.aget_or_create(chat_id=message.from_user.id)
+    if new:
+        await bot.send_message(message.chat.id, "Choose your language", reply_markup=keyboard.language_keyboard)
     else:
-        await bot.send_message(message.chat.id, "Hello", reply_markup=keyboard.user_keyboard)
+        language = await sync_to_async(user_request.get_language)()
+        status = (
+            "superuser"
+            if await sync_to_async(user_request.has_superuser_status)()
+            else "staff"
+            if await sync_to_async(user_request.has_staff_status)()
+            else "user"
+        )
+        messages = {
+            "ua": {
+                "superuser": "Привіт, суперкористувач. Використовуйте /help, щоб дізнатися про команди",
+                "staff": "Привіт, член персоналу. Використовуйте /help, щоб дізнатися про команди",
+                "user": "Привіт. Використовуйте /help, щоб дізнатися про команди",
+            },
+            "en": {
+                "superuser": "Hello, superuser. Use /help to see about commands",
+                "staff": "Hello, staff member. Use /help to see about commands",
+                "user": "Hello. Use /help to see about commands",
+            },
+        }
+        keyboards = {
+            "ua": {
+                "superuser": keyboard.ua_admin_keyboard,
+                "staff": keyboard.ua_staff_keyboard,
+                "user": keyboard.ua_user_keyboard,
+            },
+            "en": {
+                "superuser": keyboard.en_admin_keyboard,
+                "staff": keyboard.en_staff_keyboard,
+                "user": keyboard.en_user_keyboard,
+            },
+        }
+        await bot.send_message(message.chat.id, messages[language][status], reply_markup=keyboards[language][status])
 
 
 @dp.message_handler(commands=["cancel"], state="*")
 @dp.message_handler(Text(equals="cancel", ignore_case=True), state="*")
 async def cancel(message: types.Message, state: FSMContext):
+    user_request = await TelegramUser.objects.aget(chat_id=message.from_user.id)
+    language = await sync_to_async(user_request.get_language)()
+    cancel_messages = {"ua": "Успішно скасовано", "en": "Successfully canceled"}
     current_state = await state.get_state()
     if current_state is not None:
         await state.finish()
-        await message.reply("Successfully canceled.")
+        await message.reply(cancel_messages[language])

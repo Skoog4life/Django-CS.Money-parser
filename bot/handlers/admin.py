@@ -18,14 +18,28 @@ async def start_function(message: types.Message = None, chat_id=None):
     if not chat_id:
         chat_id = message.from_user.id
     user_request = await TelegramUser.objects.aget(chat_id=chat_id)
+    language = await sync_to_async(user_request.get_language)()
+
+    messages = {
+        "ua": {
+            "start": "Сповіщувач почав роботу",
+            "running": "Сповіщувач вже працює",
+            "permission": "У вас недостатньо прав",
+        },
+        "en": {
+            "start": "Notifier started",
+            "running": "Notifier is already running",
+            "permission": "You do not have enough permissions",
+        },
+    }
 
     if await sync_to_async(user_request.has_staff_status)():
         if await logic.start_notifier():
-            await bot.send_message(chat_id=chat_id, text="Notifier started")
+            await bot.send_message(chat_id=chat_id, text=messages[language]["start"])
         else:
-            await bot.send_message(chat_id=chat_id, text="Notifier is already running")
+            await bot.send_message(chat_id=chat_id, text=messages[language]["running"])
     else:
-        await bot.send_message(chat_id=chat_id, text="You do not have enough permissions")
+        await bot.send_message(chat_id=chat_id, text=messages[language]["permission"])
 
 
 @dp.message_handler(commands=["stop_notifier"])
@@ -33,14 +47,92 @@ async def stop_function(message: types.Message = None, chat_id=None):
     if not chat_id:
         chat_id = message.from_user.id
     user_request = await TelegramUser.objects.aget(chat_id=chat_id)
+    language = await sync_to_async(user_request.get_language)()
+
+    messages = {
+        "ua": {
+            "stop": "Сповіщувач зупинено",
+            "stopped": "Сповіщувач вже зупинено",
+            "permission": "У вас недостатньо прав",
+        },
+        "en": {
+            "stop": "Notifier stopped",
+            "stopped": "Notifier is already stopped",
+            "permission": "You do not have enough permissions",
+        },
+    }
 
     if await sync_to_async(user_request.has_staff_status)():
         if await logic.stop_notifier():
-            await bot.send_message(chat_id=chat_id, text="Notifier stopped")
+            await bot.send_message(chat_id=chat_id, text=messages[language]["stop"])
         else:
-            await bot.send_message(chat_id=chat_id, text="Notifier is already stopped")
+            await bot.send_message(chat_id=chat_id, text=messages[language]["stopped"])
     else:
-        await bot.send_message(chat_id=chat_id, text="You do not have enough permissions")
+        await bot.send_message(chat_id=chat_id, text=messages[language]["permission"])
+
+
+@dp.message_handler(commands=["parse_on_start_on"])
+async def parse_on_start_on(message: types.Message = None, chat_id=None):
+    if not chat_id:
+        chat_id = message.from_user.id
+    user_request = await TelegramUser.objects.aget(chat_id=chat_id)
+    language = await sync_to_async(user_request.get_language)()
+
+    messages = {
+        "ua": {"on": "Парсинг включено", "already_on": "Парсинг вже включено", "permission": "У вас недостатньо прав"},
+        "en": {
+            "on": "Parsing enabled",
+            "already_on": "Parsing is already enabled",
+            "permission": "You do not have enough permissions",
+        },
+    }
+
+    if (
+        await sync_to_async(user_request.has_superuser_status)()
+        and await sync_to_async(user_request.has_staff_status)()
+    ):
+        config = await Config.objects.afirst()
+        if config.parse_on_start:
+            await bot.send_message(chat_id=chat_id, text=messages[language]["already_on"])
+        else:
+            await sync_to_async(config.set_parse_on_start)(True)
+            await bot.send_message(chat_id=chat_id, text=messages[language]["on"])
+    else:
+        await bot.send_message(chat_id=chat_id, text=messages[language]["permission"])
+
+
+@dp.message_handler(commands=["parse_on_start_off"])
+async def parse_on_start_off(message: types.Message = None, chat_id=None):
+    if not chat_id:
+        chat_id = message.from_user.id
+    user_request = await TelegramUser.objects.aget(chat_id=chat_id)
+    language = await sync_to_async(user_request.get_language)()
+
+    messages = {
+        "ua": {
+            "off": "Парсинг виключено",
+            "already_off": "Парсинг вже виключено",
+            "permission": "У вас недостатньо прав",
+        },
+        "en": {
+            "off": "Parsing disabled",
+            "already_off": "Parsing is already disabled",
+            "permission": "You do not have enough permissions",
+        },
+    }
+
+    if (
+        await sync_to_async(user_request.has_superuser_status)()
+        and await sync_to_async(user_request.has_staff_status)()
+    ):
+        config = await Config.objects.afirst()
+        if not config.parse_on_start:
+            await bot.send_message(chat_id=chat_id, text=messages[language]["already_off"])
+        else:
+            await sync_to_async(config.set_parse_on_start)(False)
+            await bot.send_message(chat_id=chat_id, text=messages[language]["off"])
+    else:
+        await bot.send_message(chat_id=chat_id, text=messages[language]["permission"])
 
 
 @dp.message_handler(commands=["update"])
@@ -51,6 +143,22 @@ async def update_price(message: types.Message, state: FSMContext, chat_id=None):
     if not chat_id:
         chat_id = message.from_user.id
     user_request = await TelegramUser.objects.aget(chat_id=chat_id)
+    language = await sync_to_async(user_request.get_language)()
+
+    messages = {
+        "ua": {
+            "price": "Ціна {item_name} є {price}",
+            "empty": "Вам потрібно надати назву товару. Використовуйте команду так: /update <item_name>",
+            "try_again": "Спробуйте ще раз",
+            "permission": "У вас недостатньо прав",
+        },
+        "en": {
+            "price": "Price of {item_name} is {price}",
+            "empty": "You need to provide an item name. Use the command like this: /update <item_name>",
+            "try_again": "Try again",
+            "permission": "You do not have enough permissions",
+        },
+    }
 
     if await sync_to_async(user_request.has_staff_status)():
         try:
@@ -60,19 +168,37 @@ async def update_price(message: types.Message, state: FSMContext, chat_id=None):
                 item_name = message.text
                 await state.finish()
             price = await check_item_price(item_name=item_name, update=True)
-            await message.reply(f"Price of {item_name} is {price}")
+            await message.reply(messages[language]["price"].format(item_name=item_name, price=price))
         except MessageTextIsEmpty:
-            await message.reply("You need to provide an item name. Use the command like this: /update <item_name>")
+            await message.reply(messages[language]["empty"])
         except:
-            await message.reply("Try again")
+            await message.reply(messages[language]["try_again"])
     else:
-        await bot.send_message(chat_id=chat_id, text="You do not have enough permissions")
+        await bot.send_message(chat_id=chat_id, text=messages[language]["permission"])
 
 
 @dp.message_handler(commands=["time_to_update"])
 @dp.message_handler(state=logic.FiniteStateMachine.time_to_update)
 async def time_to_update(message: types.Message, state: FSMContext):
     user_request = await TelegramUser.objects.aget(chat_id=message.from_user.id)
+    language = await sync_to_async(user_request.get_language)()
+
+    messages = {
+        "ua": {
+            "set": "Час оновлення встановлено на {hours} години",
+            "greater_than_0": "Вам потрібно вказати число більше 0",
+            "command_usage": "Вам потрібно вказати число більше 0. Використовуйте команду так: /time_to_update <hours>",
+            "try_again": "Спробуйте ще раз",
+            "permission": "У вас недостатньо прав",
+        },
+        "en": {
+            "set": "Time to update set to {hours} hours",
+            "greater_than_0": "You need to provide a number greater than 0",
+            "command_usage": "You need to provide a number greater than 0. Use the command like this: /time_to_update <hours>",
+            "try_again": "Try again",
+            "permission": "You do not have enough permissions",
+        },
+    }
 
     current_state = await state.get_state()
     if (
@@ -91,26 +217,42 @@ async def time_to_update(message: types.Message, state: FSMContext):
                     raise ValueError
                 config = await Config.objects.afirst()
                 await sync_to_async(config.set_time_to_update)(hours)
-                await message.reply(f"Time to update set to {hours} hours")
+                await message.reply(messages[language]["set"].format(hours=hours))
             except ValueError:
-                await bot.send_message(
-                    chat_id=message.from_user.id, text="You need to provide a number greater than 0"
-                )
+                await bot.send_message(chat_id=message.from_user.id, text=messages[language]["greater_than_0"])
         except MessageTextIsEmpty:
             await bot.send_message(
                 chat_id=message.from_user.id,
-                text="You need to provide a number greater than 0. Use the command like this: /time_to_update <hours>",
+                text=messages[language]["command_usage"],
             )
         except:
-            await bot.send_message(chat_id=message.from_user.id, text="Try again")
+            await bot.send_message(chat_id=message.from_user.id, text=messages[language]["try_again"])
     else:
-        await bot.send_message(chat_id=message.from_user.id, text="You do not have enough permissions")
+        await bot.send_message(chat_id=message.from_user.id, text=messages[language]["permission"])
 
 
 @dp.message_handler(commands=["page_count"])
 @dp.message_handler(state=logic.FiniteStateMachine.page_count)
 async def page_count(message: types.Message, state: FSMContext):
     user_request = await TelegramUser.objects.aget(chat_id=message.from_user.id)
+    language = await sync_to_async(user_request.get_language)()
+
+    messages = {
+        "ua": {
+            "set": "Кількість сторінок встановлено на {count}",
+            "greater_than_0": "Вам потрібно вказати число більше 0",
+            "command_usage": "Вам потрібно вказати число більше 0. Використовуйте команду так: /page_count",
+            "try_again": "Спробуйте ще раз",
+            "permission": "У вас недостатньо прав",
+        },
+        "en": {
+            "set": "Page count set to {count}",
+            "greater_than_0": "You need to provide a number greater than 0",
+            "command_usage": "You need to provide a number greater than 0. Use the command like this: /page_count",
+            "try_again": "Try again",
+            "permission": "You do not have enough permissions",
+        },
+    }
 
     current_state = await state.get_state()
     if (
@@ -129,26 +271,39 @@ async def page_count(message: types.Message, state: FSMContext):
                     raise ValueError
                 config = await Config.objects.afirst()
                 await sync_to_async(config.set_page_count)(count)
-                await message.reply(f"Page count set to {count}")
+                await message.reply(messages[language]["set"].format(count=count))
             except ValueError:
-                await bot.send_message(
-                    chat_id=message.from_user.id, text="You need to provide a number greater than 0"
-                )
+                await bot.send_message(chat_id=message.from_user.id, text=messages[language]["greater_than_0"])
         except MessageTextIsEmpty:
-            await bot.send_message(
-                chat_id=message.from_user.id,
-                text="You need to provide a number greater than 0. Use the command like this: /page_count <count>",
-            )
+            await bot.send_message(chat_id=message.from_user.id, text=messages[language]["command_usage"])
         except:
-            await bot.send_message(chat_id=message.from_user.id, text="Try again")
+            await bot.send_message(chat_id=message.from_user.id, text=messages[language]["try_again"])
     else:
-        await bot.send_message(chat_id=message.from_user.id, text="You do not have enough permissions")
+        await bot.send_message(chat_id=message.from_user.id, text=messages[language]["permission"])
 
 
 @dp.message_handler(commands=["csmoney_discount"])
 @dp.message_handler(state=logic.FiniteStateMachine.csmoney_discount)
 async def csmoney_discount(message: types.Message, state: FSMContext):
     user_request = await TelegramUser.objects.aget(chat_id=message.from_user.id)
+    language = await sync_to_async(user_request.get_language)()
+
+    messages = {
+        "ua": {
+            "set": "Знижка встановлена на {discount}",
+            "greater_than_0": "Вам потрібно вказати число більше або рівне 0",
+            "command_usage": "Вам потрібно вказати число більше або рівне 0. Використовуйте команду так: /csmoney_discount <discount>",
+            "try_again": "Спробуйте ще раз",
+            "permission": "У вас недостатньо прав",
+        },
+        "en": {
+            "set": "Discount set to {discount}",
+            "greater_than_0": "You need to provide a number greater than or equal to 0",
+            "command_usage": "You need to provide a number greater than or equal to 0. Use the command like this: /csmoney_discount <discount>",
+            "try_again": "Try again",
+            "permission": "You do not have enough permissions",
+        },
+    }
 
     current_state = await state.get_state()
     if (
@@ -167,26 +322,45 @@ async def csmoney_discount(message: types.Message, state: FSMContext):
                     raise ValueError
                 config = await Config.objects.afirst()
                 await sync_to_async(config.set_desired_csmoney_allowed_discount)(discount)
-                await message.reply(f"Discount set to {discount}")
+                await message.reply(messages[language]["set"].format(discount=discount))
             except ValueError:
-                await bot.send_message(
-                    chat_id=message.from_user.id, text="You need to provide a number greater than or equal to 0"
-                )
+                await bot.send_message(chat_id=message.from_user.id, text=messages[language]["greater_than_0"])
         except MessageTextIsEmpty:
             await bot.send_message(
                 chat_id=message.from_user.id,
-                text="You need to provide a number greater than or equal to 0. Use the command like this: /csmoney_discount <discount>",
+                text=messages[language]["command_usage"],
             )
         except:
-            await bot.send_message(chat_id=message.from_user.id, text="Try again")
+            await bot.send_message(chat_id=message.from_user.id, text=messages[language]["try_again"])
     else:
-        await bot.send_message(chat_id=message.from_user.id, text="You do not have enough permissions")
+        await bot.send_message(chat_id=message.from_user.id, text=messages[language]["permission"])
 
 
 @dp.message_handler(commands=["staff_add"])
 @dp.message_handler(state=logic.FiniteStateMachine.staff_add)
 async def staff_add(message: types.Message, state: FSMContext):
     user_request = await TelegramUser.objects.aget(chat_id=message.from_user.id)
+    language = await sync_to_async(user_request.get_language)()
+
+    messages = {
+        "ua": {
+            "now_staff": "Користувач тепер є персоналом",
+            "already_staff": "Користувач вже є персоналом",
+            "not_found": "Користувача не знайдено",
+            "command_usage": "Вам потрібно вказати id користувача. Використовуйте команду так: /staff <id>",
+            "try_again": "Спробуйте ще раз",
+            "permission": "У вас недостатньо прав",
+        },
+        "en": {
+            "now_staff": "User is now staff",
+            "already_staff": "User is already staff",
+            "not_found": "User not found",
+            "command_usage": "You need to provide an user id. Use the command like this: /staff <id>",
+            "try_again": "Try again",
+            "permission": "You do not have enough permissions",
+        },
+    }
+
     current_state = await state.get_state()
     if (
         await sync_to_async(user_request.has_superuser_status)()
@@ -203,26 +377,48 @@ async def staff_add(message: types.Message, state: FSMContext):
             if telegram_user and telegram_user_user:
                 if not await sync_to_async(telegram_user.has_staff_status)():
                     await sync_to_async(telegram_user.staff_status)(True)
-                    await bot.send_message(chat_id=message.from_user.id, text="User is now staff")
+                    await bot.send_message(chat_id=message.from_user.id, text=messages[language]["now_staff"])
                 else:
-                    await bot.send_message(chat_id=message.from_user.id, text="User is already staff")
+                    await bot.send_message(chat_id=message.from_user.id, text=messages[language]["already_staff"])
             else:
-                await bot.send_message(chat_id=message.from_user.id, text="User not found")
+                await bot.send_message(chat_id=message.from_user.id, text=messages[language]["not_found"])
         except MessageTextIsEmpty:
             await bot.send_message(
                 chat_id=message.from_user.id,
                 text="You need to provide an user id. Use the command like this: /staff <id>",
             )
         except:
-            await bot.send_message(chat_id=message.from_user.id, text="Try again")
+            await bot.send_message(chat_id=message.from_user.id, text=messages[language]["try_again"])
     else:
-        await bot.send_message(chat_id=message.from_user.id, text="You do not have enough permissions")
+        await bot.send_message(chat_id=message.from_user.id, text=messages[language]["permission"])
 
 
 @dp.message_handler(commands=["staff_remove"])
 @dp.message_handler(state=logic.FiniteStateMachine.staff_remove)
 async def staff_remove(message: types.Message, state: FSMContext):
     user_request = await TelegramUser.objects.aget(chat_id=message.from_user.id)
+    language = await sync_to_async(user_request.get_language)()
+
+    messages = {
+        "ua": {
+            "you": "Ви не можете видалити себе з персоналу",
+            "now_staff": "Користувач більше не є персоналом",
+            "not_staff": "Користувач не є персоналом",
+            "not_found": "Користувача не знайдено",
+            "command_usage": "Вам потрібно вказати id користувача. Використовуйте команду так: /staff <id>",
+            "try_again": "Спробуйте ще раз",
+            "permission": "У вас недостатньо прав",
+        },
+        "en": {
+            "you": "You can't remove yourself from staff",
+            "now_staff": "User is no longer staff",
+            "not_staff": "User is not staff",
+            "not_found": "User not found",
+            "command_usage": "You need to provide an user id. Use the command like this: /staff <id>",
+            "try_again": "Try again",
+            "permission": "You do not have enough permissions",
+        },
+    }
 
     current_state = await state.get_state()
     if (
@@ -238,38 +434,21 @@ async def staff_remove(message: types.Message, state: FSMContext):
             telegram_user = await TelegramUser.objects.filter(chat_id=id).afirst()
             telegram_user_user = await sync_to_async(lambda: telegram_user.user)()
             if telegram_user and telegram_user_user:
-                if await sync_to_async(telegram_user.has_staff_status)():
+                if id == user_request.chat_id:
+                    await bot.send_message(chat_id=message.from_user.id, text=messages[language]["you"])
+                elif await sync_to_async(telegram_user.has_staff_status)():
                     await sync_to_async(telegram_user.staff_status)(False)
-                    await bot.send_message(chat_id=message.from_user.id, text="User is no longer staff")
+                    await bot.send_message(chat_id=message.from_user.id, text=messages[language]["now_staff"])
                 else:
-                    await bot.send_message(chat_id=message.from_user.id, text="User is not staff")
+                    await bot.send_message(chat_id=message.from_user.id, text=messages[language]["not_staff"])
             else:
-                await bot.send_message(chat_id=message.from_user.id, text="User not found")
+                await bot.send_message(chat_id=message.from_user.id, text=messages[language]["not_found"])
         except MessageTextIsEmpty:
             await bot.send_message(
                 chat_id=message.from_user.id,
-                text="You need to provide an user id. Use the command like this: /staff <id>",
+                text=message[language]["command_usage"],
             )
         except:
-            await bot.send_message(chat_id=message.from_user.id, text="Try again")
+            await bot.send_message(chat_id=message.from_user.id, text=messages[language]["try_again"])
     else:
-        await bot.send_message(chat_id=message.from_user.id, text="You do not have enough permissions")
-
-
-# @dp.callback_query_handler(lambda c: c.data and c.data.startswith('a/'))
-# async def process_callback_button(callback_query: types.CallbackQuery):
-
-#     callback_data = callback_query.data[1::]
-
-#     if callback_data == '/update':
-#         await bot.send_message(callback_query.from_user.id, "Please enter the item name:")
-#         await FiniteStateMachine.update.set()
-#     elif callback_data == '/start_notifier':
-#         await start_function(chat_id=callback_query.from_user.id)
-#     elif callback_data == '/stop_notifier':
-#         await stop_function(chat_id=callback_query.from_user.id)
-#     elif callback_data == '/staff':
-#         await bot.send_message(callback_query.from_user.id, "Please enter the user id:")
-#         await FiniteStateMachine.staff.set()
-
-#     await callback_query.answer()
+        await bot.send_message(chat_id=message.from_user.id, text=messages[language]["permission"])

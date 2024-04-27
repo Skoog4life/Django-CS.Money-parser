@@ -43,14 +43,16 @@ async def steam_request(item_name):
                 print("Waiting for steam...")
                 return await steam_request(item_name)
 
+
 global_config = Config.objects.first()
 
-async def check_item_price(item_name, config = None, update=False):
-    item = await ItemPrice.objects.filter(name=item_name).afirst()  # Take the first item
+
+async def check_item_price(item_name, config=None, update=False):
+    item = await ItemPrice.objects.filter(name=item_name).afirst()
     if config is None:
         config = global_config
     time_to_update = config.time_to_update
-    if item and not await sync_to_async(item.need_to_update)(time_to_update) and not update:  #
+    if item and not await sync_to_async(item.need_to_update)(time_to_update) and not update:
         return item.price
     else:
         await asyncio.sleep(3)

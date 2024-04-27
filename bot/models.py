@@ -12,6 +12,7 @@ class TelegramUser(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     desired_profit = models.FloatField(default=1.35)
     notify = models.BooleanField(default=True)
+    language = models.CharField(max_length=2, default="ua")
 
     def has_superuser_status(self):
         if self.user:
@@ -42,9 +43,16 @@ class TelegramUser(models.Model):
     def notify_on(self):
         self.notify = True
         self.save()
-    
+
     def notify_off(self):
         self.notify = False
+        self.save()
+
+    def get_language(self):
+        return self.language
+
+    def set_language(self, language):
+        self.language = language
         self.save()
 
     def __str__(self):
@@ -85,19 +93,19 @@ class Config(models.Model):
     parse_on_start = models.BooleanField(default=False)
 
     def get_csmoney_allowed_discount(self):
-        return ((self.csmoney_allowed_discount * 100) - 100) + 1
+        return self.csmoney_allowed_discount * 100
 
     def set_desired_csmoney_allowed_discount(self, choosed_discount):
-        self.csmoney_allowed_discount = round(((choosed_discount + 100) / 100) - 1, 2)
+        self.csmoney_allowed_discount = round((choosed_discount / 100), 2)
         self.save()
 
     def set_steam_allowed_profit(self, choosed_profit):
         self.steam_allowed_profit = (choosed_profit + 100) / 100
         self.save()
-    
+
     def get_steam_allowed_profit(self):
         return (self.steam_allowed_profit * 100) - 100
-    
+
     def set_page_count(self, page_count):
         self.page_count = page_count * 60
         self.save()

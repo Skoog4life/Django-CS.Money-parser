@@ -8,6 +8,7 @@ import aiofiles
 from .steam_price_checker import check_item_price, steam_hash_name
 from bot.models import FoundItem, Config
 
+
 async def parser():
     config = await Config.objects.afirst()
     page_count = int(config.page_count)
@@ -20,7 +21,6 @@ async def parser():
                 async with session.get(
                     f"https://cs.money/1.0/market/sell-orders?limit=60&minPrice=0.25&offset={page}&order=desc&sort=discount&type=12",
                     timeout=10,
-                    #proxy="http://35.185.196.38:3128",
                 ) as response:
                     src = await response.text()
                     try:
@@ -35,7 +35,7 @@ async def parser():
 
                     item_list = []
                     for item in data["items"]:
-                        if item["pricing"]["discount"] >= csmoney_allowed_discount and item["pricing"]["discount"] <= 0.385:
+                        if item["pricing"]["discount"] >= csmoney_allowed_discount:
                             item_id = item["id"]
                             full_name_of_item = item["asset"]["names"]["full"]
                             item_link = f"https://steamcommunity.com/market/listings/730/{await steam_hash_name(full_name_of_item)}"
@@ -68,14 +68,9 @@ async def parser():
                                         steam_price=steam_price,
                                         profit=profit,
                                     )
-                                    # print(f"PROFIT {full_name_of_item} {profit}")
                             except Exception as e:
                                 print(f"Error: {e}")
                                 print(f"Item: {full_name_of_item} item_id: {item_id}")
-
-                        # else:
-                        #     stop_loop = True
-                        #     break
 
                     async with aiofiles.open(f"items_discount{page}.json", "w", encoding="utf-8") as file:
                         await file.write(json.dumps(item_list, indent=4, ensure_ascii=False))
