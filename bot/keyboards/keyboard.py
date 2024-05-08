@@ -1,4 +1,4 @@
-from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 # Define the user buttons
 en_notify_on_button = InlineKeyboardButton('Enable notifications 🔔', callback_data='/notify_on')
@@ -12,7 +12,7 @@ en_help_button = InlineKeyboardButton('Help ❓', callback_data='/help')
 ua_notify_on_button = InlineKeyboardButton('Увімкнути сповіщення 🔔', callback_data='/notify_on')
 ua_notify_off_button = InlineKeyboardButton('Вимкнути сповіщення 🔕', callback_data='/notify_off')
 ua_check_button = InlineKeyboardButton('Перевірити ціну ✅', callback_data='/check')
-ua_profit_button = InlineKeyboardButton('Змінити прибуток 💰', callback_data='/profit')
+ua_profit_button = InlineKeyboardButton('Змінити бажаний прибуток 💰', callback_data='/profit')
 ua_create_user_button = InlineKeyboardButton('Створити користувача 👤🔑', callback_data='/create_user')
 ua_change_language_button = InlineKeyboardButton('Змінити мову 🌐', callback_data='/change_language')
 ua_help_button = InlineKeyboardButton('Допомога ❓', callback_data='/help')
@@ -32,6 +32,7 @@ en_parse_on_start_off = InlineKeyboardButton('Disable parse on start 🔴', call
 en_time_to_update_button = InlineKeyboardButton('Change update time ⏰', callback_data='/time_to_update')
 en_page_count_button = InlineKeyboardButton('Change page count 📄', callback_data='/page_count')
 en_csmoney_discount_button = InlineKeyboardButton('Change csmoney discound 💰', callback_data='/csmoney_discount')
+en_steam_allowed_profit = InlineKeyboardButton('Change steam allowed profit 💰', callback_data='/steam_allowed_profit')
 en_staff_add_button = InlineKeyboardButton('Add staff 👤➕', callback_data='/staff_add')
 en_staff_remove_button = InlineKeyboardButton('Remove staff 👤➖', callback_data='/staff_remove')
 
@@ -40,6 +41,7 @@ ua_parse_on_start_off = InlineKeyboardButton('Вимкнути парсинг п
 ua_time_to_update_button = InlineKeyboardButton('Змінити час оновлення ⏰', callback_data='/time_to_update')
 ua_page_count_button = InlineKeyboardButton('Змінити кількість сторінок 📄', callback_data='/page_count')
 ua_csmoney_discount_button = InlineKeyboardButton('Змінити знижку csmoney 💰', callback_data='/csmoney_discount')
+ua_steam_allowed_profit = InlineKeyboardButton('Змінити дозволений прибуток steam 💰', callback_data='/steam_allowed_profit')
 ua_staff_add_button = InlineKeyboardButton('Додати персонал 👤➕', callback_data='/staff_add')
 ua_staff_remove_button = InlineKeyboardButton('Видалити персонал 👤➖', callback_data='/staff_remove')
 
@@ -114,6 +116,7 @@ en_admin_keyboard.row(en_admin_separator_button)
 en_admin_keyboard.row(en_parse_on_start_on, en_parse_on_start_off)
 en_admin_keyboard.row(en_time_to_update_button, en_page_count_button)
 en_admin_keyboard.row(en_csmoney_discount_button)
+en_admin_keyboard.row(en_steam_allowed_profit)
 en_admin_keyboard.row(en_staff_add_button, en_staff_remove_button)
 
 ua_admin_keyboard = InlineKeyboardMarkup()
@@ -134,6 +137,7 @@ ua_admin_keyboard.row(ua_parse_on_start_on)
 ua_admin_keyboard.row(ua_parse_on_start_off)
 ua_admin_keyboard.row(ua_time_to_update_button, ua_page_count_button)
 ua_admin_keyboard.row(ua_csmoney_discount_button)
+ua_admin_keyboard.row(ua_steam_allowed_profit)
 ua_admin_keyboard.row(ua_staff_add_button, ua_staff_remove_button)
 
 # Cancel

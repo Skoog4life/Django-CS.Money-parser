@@ -4,7 +4,7 @@ from bot.utils.loader import bot, dp
 
 from bot.handlers import logic, admin, user
 
-from bot.models import TelegramUser, ItemPrice, Config
+from bot.models import TelegramUser, Config
 from bot.keyboards import keyboard
 from aiogram.dispatcher import FSMContext
 
@@ -33,6 +33,7 @@ async def process_callback_button(callback_query: types.CallbackQuery, state: FS
             "/time_to_update": "Поточний час оновлення: {current_time}\nБудь ласка, введіть час у годинах:",
             "/page_count": "Поточна кількість сторінок: {current_page_count}\nБудь ласка, введіть кількість сторінок:",
             "/csmoney_discount": "Поточна знижка: {current_discount}\nБудь ласка, введіть бажану знижку:",
+            "/steam_allowed_profit": "Поточний прибуток: {current_profit}\nБудь ласка, введіть бажаний прибуток:",
             "/staff_add": "Будь ласка, введіть ідентифікатор користувача:",
             "/staff_remove": "Будь ласка, введіть ідентифікатор користувача:",
             "language_keyboard": keyboard.ua_language_keyboard,
@@ -54,6 +55,7 @@ async def process_callback_button(callback_query: types.CallbackQuery, state: FS
             "/time_to_update": "Current time to update: {current_time}\nPlease enter the time in hours:",
             "/page_count": "Current page count: {current_page_count}\nPlease enter the page count:",
             "/csmoney_discount": "Current discount: {current_discount}\nPlease enter the desired discount:",
+            "/steam_allowed_profit": "Current profit: {current_profit}\nPlease enter the desired profit:",
             "/staff_add": "Please enter the user id:",
             "/staff_remove": "Please enter the user id:",
             "language_keyboard": keyboard.en_language_keyboard,
@@ -144,6 +146,14 @@ async def process_callback_button(callback_query: types.CallbackQuery, state: FS
             reply_markup=messages[language]["cancel_keyboard"],
         )
         await logic.FiniteStateMachine.csmoney_discount.set()
+    elif callback_data == "/steam_allowed_profit":
+        current_profit = await sync_to_async(config.get_steam_allowed_profit)()
+        await bot.send_message(
+            callback_query.from_user.id,
+            messages[language][callback_data].format(current_profit=current_profit),
+            reply_markup=messages[language]["cancel_keyboard"],
+        )
+        await logic.FiniteStateMachine.steam_allowed_profit.set()
     elif callback_data == "/staff_add":
         await bot.send_message(
             callback_query.from_user.id,

@@ -19,7 +19,7 @@ class ItemPriceAdmin(admin.ModelAdmin):
 
 
 class ConfigAdmin(admin.ModelAdmin):
-    list_display = ["csmoney_allowed_discount", "page_count", "time_to_update", "parse_on_start"]
+    list_display = ["csmoney_allowed_discount", "steam_allowed_profit", "page_count", "time_to_update", "parse_on_start"]
 
 
 admin.site.register(TelegramUser, TelegramUserAdmin)

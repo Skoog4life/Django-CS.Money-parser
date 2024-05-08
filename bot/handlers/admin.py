@@ -1,7 +1,5 @@
 from aiogram import types
 
-from django.contrib.auth.models import User
-
 from bot.utils.loader import bot, dp
 from bot.models import TelegramUser, Config
 from asgiref.sync import sync_to_async
@@ -335,6 +333,56 @@ async def csmoney_discount(message: types.Message, state: FSMContext):
     else:
         await bot.send_message(chat_id=message.from_user.id, text=messages[language]["permission"])
 
+@dp.message_handler(commands=["steam_allowed_profit"])
+@dp.message_handler(state=logic.FiniteStateMachine.steam_allowed_profit)
+async def steam_allowed_profit(message: types.Message, state: FSMContext):
+    user_request = await TelegramUser.objects.aget(chat_id=message.from_user.id)
+    language = await sync_to_async(user_request.get_language)()
+
+    messages = {
+        "ua": {
+            "set": "Дозволений прибуток встановлено на {profit}%",
+            "command_usage": "Вам потрібно вказати число більше або рівне 0. Використовуйте команду так: /steam_allowed_profit <profit>",
+            "try_again": "Спробуйте ще раз",
+            "permission": "У вас недостатньо прав",
+        },
+        "en": {
+            "set": "Allowed profit set to {profit}%",
+            "command_usage": "You need to provide a number greater than or equal to 0. Use the command like this: /steam_allowed_profit <profit>",
+            "try_again": "Try again",
+            "permission": "You do not have enough permissions",
+        },
+    }
+
+    current_state = await state.get_state()
+    if (
+        await sync_to_async(user_request.has_superuser_status)()
+        and await sync_to_async(user_request.has_staff_status)()
+    ):
+        try:
+            if current_state is None:
+                profit = "".join(message.get_args().split())
+            else:
+                profit = message.text
+                await state.finish()
+            try:
+                profit = int(profit)
+                if profit < 0:
+                    raise ValueError
+                config = await Config.objects.afirst()
+                await sync_to_async(config.set_steam_allowed_profit)(profit)
+                await message.reply(messages[language]["set"].format(profit=profit))
+            except ValueError:
+                await bot.send_message(chat_id=message.from_user.id, text=messages[language]["greater_than_0"])
+        except MessageTextIsEmpty:
+            await bot.send_message(
+                chat_id=message.from_user.id,
+                text=messages[language]["command_usage"],
+            )
+        except:
+            await bot.send_message(chat_id=message.from_user.id, text=messages[language]["try_again"])
+    else:
+        await bot.send_message(chat_id=message.from_user.id, text=messages[language]["permission"])
 
 @dp.message_handler(commands=["staff_add"])
 @dp.message_handler(state=logic.FiniteStateMachine.staff_add)

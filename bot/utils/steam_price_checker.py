@@ -1,10 +1,7 @@
 import aiohttp
 import asyncio
-
 from urllib.parse import quote
-
 from asgiref.sync import sync_to_async
-
 from bot.models import ItemPrice, Config
 
 headers = {
@@ -25,7 +22,7 @@ async def steam_hash_name(item_name):
 
 async def steam_request(item_name):
     url = f"https://steamcommunity.com/market/priceoverview/?currency=1&appid=730&market_hash_name={await steam_hash_name(item_name)}"
-    steam_commission = 0.8697
+    steam_commission = 0.86958
     async with aiohttp.ClientSession() as session:
         async with session.get(url, timeout=10, headers=headers) as response:
             data = await response.json()

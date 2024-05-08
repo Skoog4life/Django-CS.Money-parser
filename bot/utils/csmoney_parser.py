@@ -1,7 +1,4 @@
-import requests
 import json
-import urllib.parse
-import time
 import asyncio
 import aiohttp
 import aiofiles
@@ -30,50 +27,57 @@ async def parser():
                         stop_loop = True
                         print(f"CSMONEY ERROR: {e}")
 
+
                     async with aiofiles.open(f"items{page}.json", "w", encoding="utf-8") as file:
                         await file.write(json.dumps(data, indent=4, ensure_ascii=False))
 
-                    item_list = []
-                    for item in data["items"]:
-                        if item["pricing"]["discount"] >= csmoney_allowed_discount:
-                            item_id = item["id"]
-                            full_name_of_item = item["asset"]["names"]["full"]
-                            item_link = f"https://steamcommunity.com/market/listings/730/{await steam_hash_name(full_name_of_item)}"
-                            csmoney_computed_price = item["pricing"]["computed"]
-                            csmoney_discount = item["pricing"]["discount"]
+                    if "items" not in data or not data["items"]:
+                        stop_loop = True
+                        print("CSMONEY ERROR: Empty data")
+                    else:
+                        item_list = []
+                        for item in data["items"]:
+                            if item["pricing"]["discount"] >= csmoney_allowed_discount:
+                                item_id = item["id"]
+                                full_name_of_item = item["asset"]["names"]["full"]
+                                item_link = f"https://steamcommunity.com/market/listings/730/{await steam_hash_name(full_name_of_item)}"
+                                csmoney_computed_price = item["pricing"]["computed"]
+                                csmoney_discount = item["pricing"]["discount"]
 
-                            item_list.append(
-                                {
-                                    "Item ID": item_id,
-                                    "Name": full_name_of_item,
-                                    "Link": item_link,
-                                    "Price": csmoney_computed_price,
-                                    "Discount": csmoney_discount,
-                                }
-                            )
+                                item_list.append(
+                                    {
+                                        "Item ID": item_id,
+                                        "Name": full_name_of_item,
+                                        "Link": item_link,
+                                        "Price": csmoney_computed_price,
+                                        "Discount": csmoney_discount,
+                                    }
+                                )
 
-                            steam_price = await check_item_price(item_name=full_name_of_item, config=config)
-                            if steam_price == -1:
-                                continue
+                                steam_price = await check_item_price(item_name=full_name_of_item, config=config)
+                                if steam_price == -1:
+                                    continue
 
-                            profit = round(float(steam_price / csmoney_computed_price), 3)
+                                profit = round(float(steam_price / csmoney_computed_price), 3)
 
-                            try:
-                                if profit >= steam_allowed_profit:
-                                    await FoundItem.objects.aget_or_create(
-                                        item_id=item_id,
-                                        name=full_name_of_item,
-                                        link=item_link,
-                                        csmoney_price=csmoney_computed_price,
-                                        steam_price=steam_price,
-                                        profit=profit,
-                                    )
-                            except Exception as e:
-                                print(f"Error: {e}")
-                                print(f"Item: {full_name_of_item} item_id: {item_id}")
+                                try:
+                                    if profit >= steam_allowed_profit:
+                                        await FoundItem.objects.aget_or_create(
+                                            item_id=item_id,
+                                            defaults={                                                
+                                            "name":full_name_of_item,
+                                            "link":item_link,
+                                            "csmoney_price":csmoney_computed_price,
+                                            "steam_price":steam_price,
+                                            "profit":profit,
+                                            }
+                                        )
+                                except Exception as e:
+                                    print(f"Error: {e}")
+                                    print(f"Item: {full_name_of_item} item_id: {item_id}")
 
-                    async with aiofiles.open(f"items_discount{page}.json", "w", encoding="utf-8") as file:
-                        await file.write(json.dumps(item_list, indent=4, ensure_ascii=False))
+                        async with aiofiles.open(f"items_discount{page}.json", "w", encoding="utf-8") as file:
+                            await file.write(json.dumps(item_list, indent=4, ensure_ascii=False))
 
                 if stop_loop:
                     break

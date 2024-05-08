@@ -25,6 +25,7 @@ class FiniteStateMachine(StatesGroup):
     time_to_update = State()
     page_count = State()
     csmoney_discount = State()
+    steam_allowed_profit = State()
     staff_add = State()
     staff_remove = State()
 
@@ -72,7 +73,7 @@ async def stop_notifier():
 async def start(message: types.Message):
     user_request, new = await TelegramUser.objects.aget_or_create(chat_id=message.from_user.id)
     if new:
-        await bot.send_message(message.chat.id, "Choose your language", reply_markup=keyboard.language_keyboard)
+        await bot.send_message(message.chat.id, "Choose your language", reply_markup=keyboard.ua_language_keyboard)
     else:
         language = await sync_to_async(user_request.get_language)()
         status = (
@@ -106,7 +107,7 @@ async def start(message: types.Message):
                 "user": keyboard.en_user_keyboard,
             },
         }
-        await bot.send_message(message.chat.id, messages[language][status], reply_markup=keyboards[language][status])
+        await bot.send_message(message.chat.id, messages[language][status], reply_markup=keyboards[language][status]) # Відправлення повідомлення з клавіатурою
 
 
 @dp.message_handler(commands=["cancel"], state="*")

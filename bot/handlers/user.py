@@ -1,6 +1,6 @@
 from aiogram import types
 
-from bot.utils.loader import bot, dp, memory_storage, loop
+from bot.utils.loader import bot, dp
 from bot.models import TelegramUser, ItemPrice
 from asgiref.sync import sync_to_async
 from bot.handlers import logic
@@ -201,6 +201,10 @@ async def help(message: types.Message = None, chat_id=None):
         "csmoney_discount": {
             "ua": "/csmoney_discount <знижка> - встановити задовільну знижку на сайті csmoney",
             "en": "/csmoney_discount <discount> - set the desired discount on csmoney site",
+        },
+        "steam_allowed_profit": {
+            "ua": "/steam_allowed_profit <прибуток> - встановити бажаний прибуток на сайті steam",
+            "en": "/steam_allowed_profit <profit> - set the desired profit on steam site",
         },
         "staff_add": {
             "ua": "/staff_add <id> - додати користувача до персоналу",
